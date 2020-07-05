@@ -2,8 +2,8 @@ __precompile__()
 
 module Trees
 using DataStructures, AbstractTrees
-import Base:pairs,parent,insert!,delete!,fieldnames,getproperty,==
-import AbstractTrees: printnode,print_tree,PostOrderDFS,PreOrderDFS, TreeIterator
+import Base:pairs, parent, insert!, delete!, fieldnames, getproperty, ==
+import AbstractTrees: printnode, print_tree, PostOrderDFS, PreOrderDFS, TreeIterator
 
 export 
     # Abstract types
