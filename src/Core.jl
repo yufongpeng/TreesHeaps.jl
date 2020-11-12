@@ -156,7 +156,10 @@ Splay{T}(data) where T = Splay{SBN,T}(data)
     search(node::AbstractNode{T},data::T)
 """
 function search(tree::AbstractTree{T},data,internal::Bool=false) where T
-    @assert tree.size > 0 "The tree is empty!"
+    tree.size > 0 || begin
+        @info "The tree is empty!"
+        return nothing
+    end
     current = tree.root
     return search(current,data,internal)
 end
@@ -164,12 +167,12 @@ end
 function search(node::AbstractBinaryNode{T},data,internal::Bool=false) where T
     while true
         if node.data == data
-            internal ? (return true,node) : (println("Find $data",isdefined(node,:height) ? " at height $(node.height)" : "");return nothing)
+            internal ? (return true,node) : (isdefined(node,:height) ? @info("Find $data at height $(node.height)") : @info("Find $data");return node)
         elseif node.data > data
-            isnull(node.left) && (internal ? (return false,node) : (println("Can't Find $data");return nothing))
+            isnull(node.left) && (internal ? (return false,node) : @info("Can't Find $data") ;return nothing)
             node = node.left
         else
-            isnull(node.right) && (internal ? (return false,node) : (println("Can't Find $data");return nothing))
+            isnull(node.right) && (internal ? (return false,node) : @info("Can't Find $data") ;return nothing)
             node = node.right
         end
     end
@@ -180,7 +183,10 @@ end
 
 """
 function splay!(tree::SplayTree,data)
-    @assert tree.size > 0 "The tree is empty!"
+    tree.size > 0 || begin
+        @info "The tree is empty!"
+        return nothing
+    end
     ex,current = search(tree,data,true)
     if ex
         parent = current.parent
@@ -219,7 +225,10 @@ end
 
 """
 function topdownsplay!(tree::SplayTree{SBN,T},data) where T
-    @assert tree.size > 0 "The tree is empty!"
+    tree.size > 0 || begin
+        @info "The tree is empty!"
+        return nothing
+    end
     lefttree = SplayTree{SBN,T}()
     righttree = SplayTree{SBN,T}()
     current = tree.root
@@ -301,7 +310,7 @@ function insert!(tree::AbstractTree{HBN,T},data) where T
     else
         ex,current = search(tree,data,true)
         if ex
-            println("The data $data is already in this tree!")
+            @info "The data $data is already in this tree!"
             return tree
         elseif current.data > data
             child = HBN{T}(data)
@@ -326,8 +335,7 @@ function insert!(tree::AbstractTree{SBN,T},data) where T
     else
         ex,current = search(tree,data,true)
         if ex
-            println("The data $data is already in this tree!")
-            return tree
+            @info "The data $data is already in this tree!"
         elseif current.data > data
             child = SBN{T}(data)
             current.left = child
@@ -350,7 +358,7 @@ function insert!(tree::SplayTree{SBN,T},data,topdown::Bool=false) where T
     else
         leftnode,rightnode = split!(tree,data,topdown)
         if leftnode == rightnode == NullNode()
-            println("The data $data is already in this tree!")
+            @info "The data $data is already in this tree!"
         else
             tree.size += 1
             tree.root = SBN{T}(data)
@@ -375,7 +383,10 @@ end
     delete!(tree::AbstractTree,datas::Array{T,1})
 """
 function delete!(tree::AbstractTree,data)
-    @assert tree.size > 0 "Can't delete nodes of an empty tree"
+    tree.size > 0 || begin
+        @info "The tree is empty!"
+        return nothing
+    end
     ex,current = search(tree,data,true)
     if ex
         tree.size -= 1
@@ -386,7 +397,8 @@ function delete!(tree::AbstractTree,data)
             return traverse!(tree,node)
         end
     else
-        println("The data $data is not in this tree!")
+        @info "The data $data is not in this tree!"
+        return tree
     end
 end
 
@@ -431,6 +443,10 @@ function delete_root!(tree::AbstractTree,current::HeightBinaryNode)
 end
 
 function delete!(tree::SplayTree,data,topdown::Bool=false)
+    tree.size > 0 || begin
+        @info "The tree is empty!"
+        return nothing
+    end
     topdown ? topdownsplay!(tree,data) : splay!(tree,data)
     if tree.root.data == data
         tree.size -= 1
@@ -447,7 +463,7 @@ function delete!(tree::SplayTree,data,topdown::Bool=false)
             link!(newroot,rightroot,:right)
         end
     else
-        println("The data $data is not in this tree!")
+        @info "The data $data is not in this tree!"
     end
     return tree
 end
@@ -455,6 +471,10 @@ end
         
 
 function delete!(tree::AbstractTree,datas...)
+    tree.size > 0 || begin
+        @info "The tree is empty!"
+        return nothing
+    end
     for data in datas
         delete!(tree,data)
     end

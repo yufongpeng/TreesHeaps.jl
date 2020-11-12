@@ -58,11 +58,11 @@ end
 # and have its iteration return, e.g., `:left=>node.left` and `:right=>node.right` when defined.
 # But the following is easy:
 pairs(node::AbstractBinaryNode) = enumerate(node)
-print_tree(tree::AbstractTree) = print_tree(tree.root)
+print_tree(io::IO,tree::AbstractTree) = print_tree(io,tree.root)
 printnode(io::IO, node::AbstractBinaryNode) = print(io, node.data)
 PostOrderDFS(tree::AbstractTree) = PostOrderDFS(tree.root)
 PreOrderDFS(tree::AbstractTree) = PreOrderDFS(tree.root)
-Base.show(io::IO, tree::AbstractTree) = print_tree(tree)
+Base.show(io::IO, tree::AbstractTree) = print_tree(io,tree)
 Base.show(io::IO, ::MIME"text/plain", tree::BinarySearchTree{N,T}) where{N,T} = 
     print(io,"BinarySearchTree{$N,$T}($(tree.size),$(tree.height)):","\n",tree)
 Base.show(io::IO, ::MIME"text/plain", tree::AVLTree{N,T}) where{N,T} = 

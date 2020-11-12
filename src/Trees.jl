@@ -27,13 +27,12 @@ export
 
 
 include("Core.jl")
-include("Bakance.jl")
+include("Balance.jl")
 include("Interface.jl")
 
 # Avoid importing Plots as default
-plot_init() = include("$path\\Plot.jl")
-
 const path = @__DIR__()
+plot_init() = include("$path\\Plot.jl")
 
 __init__() = precompile(plot_init,())
 
