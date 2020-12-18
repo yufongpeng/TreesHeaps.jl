@@ -1,4 +1,4 @@
-using Test, Trees, AbstractTrees
+using Test, DSTrees
 
 @testset "BinarySearchTree" begin
     s = BST(1.0)

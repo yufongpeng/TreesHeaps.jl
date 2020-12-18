@@ -1,4 +1,4 @@
-module Trees
+module DSTrees
 using DataStructures, AbstractTrees, Reexport
 import Base:pairs, insert!, delete!, fieldnames, getproperty, ==, findmin, findmax
 import AbstractTrees: printnode, print_tree, PostOrderDFS, PreOrderDFS, TreeIterator
