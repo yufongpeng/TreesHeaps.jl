@@ -1,4 +1,4 @@
-using Test, DSTrees
+using Test, TreesHeaps
 
 @testset "BinarySearchTree" begin
     s = BST(1.0)
