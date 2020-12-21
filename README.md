@@ -3,7 +3,7 @@
 |:-------:|:------:|
 | [![][ci-img]][ci-url]| [![][codecov-img]][codecov-url]|
 
-[ci-img]: https://github.com/Jejulia/TreesHeaps.jl/worlflows/CI/badge.svg
+[ci-img]: https://github.com/Jejulia/TreesHeaps.jl/workflows/CI/badge.svg
 [ci-url]: https://github.com/Jejulia/TreesHeaps.jl/actions?query=workflow%3ACI
 [codecov-img]: https://codecov.io/gh/Jejulia/TreesHeaps.jl/coveage.svg
 [codecov-url]: https://codecov.io/gh/Jejulia/TreesHeaps.jl
