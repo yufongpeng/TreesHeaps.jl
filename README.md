@@ -8,7 +8,7 @@
 [codecov-img]: https://codecov.io/gh/Jejulia/TreesHeaps.jl/coveage.svg
 [codecov-url]: https://codecov.io/gh/Jejulia/TreesHeaps.jl
 
-Implementation of various tree and heaps(to do) structures. Only binary search tree, AVL tree, splay tree are supported now. Available operations includes `search!`, `insert!`, `delete!`, `splay!`, `topdownsplay!`, `findmin`, `findmax`. Outputs are formatted through `AbstractTrees.jl`. Other tree structures and plotting recipe are under developments!
+Implementation of various tree and heaps (to do) structures. Only binary search tree, AVL tree, splay tree are supported now. Available operations includes `search!`, `insert!`, `topdowninsert!`, `delete!`, `topdowndelete!`, `splay!`, `topdownsplay!`, `findmin`, `findmax`. Outputs are formatted through `AbstractTrees.jl`. Other structures and plotting recipe are under developments!
 
 ## TO DO
 1.  Red-black tree
