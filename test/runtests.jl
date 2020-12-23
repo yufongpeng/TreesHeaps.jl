@@ -1,4 +1,7 @@
 using Test, TreesHeaps
+
+test_show(x) = show(IOBuffer(), x)
+
 @testset "Constructors" begin
     @test SBN(1) == SBN(Int, 1.0)
     @test HBN(1) == HBN(Int, 1.0)
@@ -43,6 +46,7 @@ end
     @test NullNode() == NullNode()
     @test s1 == s2
     @test findmax(NullNode()) == NullNode() == findmin(NullNode())
+    test_show(s)
 end
 
 @testset "BinarySearchTree" begin
@@ -66,7 +70,7 @@ end
     @test size(s) == 4
     @test findmax(s).data == 2.5
     @test findmin(s).data == -1
-    s
+    test_show(s)
 end
 
 @testset "BinarySearchTree with height" begin
@@ -91,7 +95,7 @@ end
     @test s.root.data == 0
     delete!(s, 0)
     @test isnull(s.root)
-    s
+    test_show(s)
 end
 
 @testset "AVLTree" begin
@@ -124,7 +128,7 @@ end
     delete!(s, -3, 3)
     @test size(s) == 7
     @test length(s) == 2
-    s
+    test_show(s)
 end
 
 @testset "SplayTree" begin
@@ -152,7 +156,7 @@ end
     @test s.root.data == 3.0
     @test s.root.left.data == 1.0
     @test size(s) == 6
-    s
+    test_show(s)
 end
 
 @testset "SplayTree with topdown operations" begin
@@ -182,6 +186,6 @@ end
     @test size(s) == 6
     nodes = [n for n in s.root]
     @test first(nodes) == s.root.right
-    s
+    test_show(s)
 end
 
