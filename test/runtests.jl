@@ -46,7 +46,6 @@ end
     @test NullNode() == NullNode()
     @test s1 == s2
     @test findmax(NullNode()) == NullNode() == findmin(NullNode())
-    test_show(s)
 end
 
 @testset "BinarySearchTree" begin
