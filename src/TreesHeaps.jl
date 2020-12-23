@@ -8,10 +8,10 @@ export
     AbstractTree, AbstractNode, AbstractBinaryNode,
 
     # Nodes
-    NullNode, SimpleBinaryNode, HeightBinaryNode, 
+    NullNode, SimpleBinaryNode, SBN, HeightBinaryNode, HBN, RedBlackBinaryNode, RBN,  
     
     # Trees
-    BinarySearchTree, BST, AVLTree, AVL, SplayTree, Splay,
+    BinarySearchTree, BST, AVLTree, AVL, SplayTree, Splay, RedBlackTree, RBT,
 
     # preoperty
     height, isnull, 
