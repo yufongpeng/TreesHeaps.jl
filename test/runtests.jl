@@ -8,6 +8,36 @@ using Test, TreesHeaps
     @test Splay(0) == Splay(Int, 0.0)
 end
 
+@testset "Interface" begin
+    s1 = BST(Float64, 1.0)
+    insert!(s1, 0, 2)
+    insert!(s1, -1, 3)
+    nodes1 = [n for n in s1.root]
+    s2 = BST(Float64, 1.0, true)
+    insert!(s2, 0, 2)
+    insert!(s2, -1, 3)
+    nodes2 = [n for n in s2.root]
+    @test eltype(s1) == eltype(s1.root)
+    @test size(s2) == s2.size 
+    @test length(s2) == length(s2.root)
+    @test height(s1.root) == 0
+    @test first(nodes1) == s1.root.left
+    @test last(nodes2) == s2.root.right
+    x = collect(PreOrderDFS(s1))
+    @test first(x) === s1.root
+    @test last(x) === s1.root.right.right
+    y = collect(PostOrderDFS(s2))
+    @test first(y) === s2.root.left.left
+    @test last(y) === s2.root
+    z = [i * n.data for (i, n) in pairs(s1.root)]
+    @test last(z) == 4
+    @test s1.root == s2.root
+    @test s1.root != NullNode()
+    @test NullNode() != s2.root
+    @test NullNode() == NullNode()
+    @test s1 == s2
+end
+
 @testset "BinarySearchTree" begin
     s = BST(Float64)
     delete!(s, 1)
@@ -138,32 +168,3 @@ end
     s
 end
 
-@testset "Interface" begin
-    s1 = BST(Float64, 1.0)
-    insert!(s1, 0, 2)
-    insert!(s1, -1, 3)
-    nodes1 = [n for n in s1.root]
-    s2 = BST(Float64, 1.0, true)
-    insert!(s2, 0, 2)
-    insert!(s2, -1, 3)
-    nodes2 = [n for n in s2.root]
-    @test eltype(s1) == eltype(s1.root)
-    @test size(s2) == s2.size 
-    @test length(s2) == length(s2.root)
-    @test height(s1.root) == 0
-    @test first(nodes1) == s1.root.left
-    @test last(nodes2) == s2.root.right
-    x = collect(PreOrderDFS(s1))
-    @test first(x) === s1.root
-    @test last(x) === s1.root.right.right
-    y = collect(PostOrderDFS(s2))
-    @test first(y) === s2.root.left.left
-    @test last(y) === s2.root
-    z = [i * n.data for (i, n) in pairs(s1.root)]
-    @test last(z) == 4
-    @test s1.root == s2.root
-    @test s1.root == NullNode()
-    @test NullNode() == s2.root
-    @test NullNode() == NullNode()
-    @test s1 == s2
-end
