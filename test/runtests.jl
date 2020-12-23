@@ -1,11 +1,16 @@
 using Test, TreesHeaps
 @testset "Constructors" begin
+    @test SBN(1) == SBN(Int, 1.0)
+    @test HBN(1) == HBN(Int, 1.0)
+    @test RBN(1) == RBN(Int, 1.0)
     @test BST() == BST(Any)
     @test BST(0) == BST(Int, 0.0)
     @test AVL() == AVL(Any)
     @test AVL(0) == AVL(Int, 0.0)
     @test Splay() == Splay(Any)
     @test Splay(0) == Splay(Int, 0.0)
+    @test RBT() == RBT(Any)
+    @test RBT(0) == RBT(Int, 0.0)
 end
 
 @testset "Interface" begin
@@ -18,6 +23,7 @@ end
     insert!(s2, -1, 3)
     nodes2 = [n for n in s2.root]
     @test eltype(s1) == eltype(s1.root)
+    @test eltype(typeof(s1)) == eltype(typeof(s1.root))
     @test size(s2) == s2.size 
     @test length(s2) == length(s2.root)
     @test height(s1.root) == 0
@@ -36,14 +42,15 @@ end
     @test NullNode() != s2.root
     @test NullNode() == NullNode()
     @test s1 == s2
+    @test findmax(NullNode()) == NullNode() == findmin(NullNode())
 end
 
 @testset "BinarySearchTree" begin
     s = BST(Float64)
-    delete!(s, 1)
+    delete!(s, 1, 2)
     @test !first(search(s, 1.0, true))
     insert!(s, 1.0)
-    insert!(s, 0, 2)
+    insert!(s, 1.0, 0, 2)
     insert!(s, -1)
     insert!(s, 2.5)
     @test first(search(s, 0, true))
@@ -76,12 +83,20 @@ end
     @test isnull(s.root.parent)
     @test size(s) == 4
     @test length(s) == 2
+    delete!(s, 2, 2.5)
+    delete!(s, 1)
+    @test s.root.data == -1
+    insert!(s, 0)
+    delete!(s, -1)
+    @test s.root.data == 0
+    delete!(s, 0)
+    @test isnull(s.root)
     s
 end
 
 @testset "AVLTree" begin
     s = AVL(Float64)
-    delete!(s, 1)
+    delete!(s, 1, 2)
     insert!(s, 1, 2, 0, 3)
     @test s.root.data == 1.0
     insert!(s, 1)
@@ -115,6 +130,7 @@ end
 @testset "SplayTree" begin
     s = Splay(Float64)
     delete!(s, 1)
+    splay!(s, 1)
     insert!(s, 1, 2, 0, 3, -1)
     @test s.root.data == -1.0
     splay!(s, 3)
@@ -141,9 +157,10 @@ end
 
 @testset "SplayTree with topdown operations" begin
     s = Splay(Float64)
-    topdowndelete!(s, 1)
-    topdowninsert!(s, 1)
-    insert!(s, 2, 0, 3, -1)
+    topdowndelete!(s, 1, 2)
+    topdownsplay!(s, 1)
+    topdowninsert!(s, 1, 2)
+    insert!(s, 0, 3, -1)
     topdownsplay!(s, 2)
     @test s.root.data == 2.0
     @test s.root.right.data == 3.0
