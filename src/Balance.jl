@@ -11,7 +11,7 @@ isnull(Node::AbstractNode) = false
 isnull(Node::NullNode) = true
 
 height(Node::AbstractNode) = 0
-height(Node::HeightBinaryNode) = Node.height
+height(Node::HBN) = Node.height
 height(Node::NullNode) = -1
 
 """
@@ -49,7 +49,7 @@ cut!(::NullNode, ::AbstractNode, ::Symbol) = nothing
 
 Get direction of parent to child.
 """
-getdir(parent::AbstractNode, child) = parent.left == child ? (:left) : (:right)
+getdir(parent::AbstractBinaryNode, child) = parent.left == child ? (:left) : (:right)
 getdir(::NullNode, ::AbstractNode) = nothing
 getdir(::NullNode, ::NullNode) = nothing
 
@@ -59,9 +59,9 @@ getproperty(::NullNode, ::Nothing) = NullNode
 # -------------------------------------------------------------------------------------------------
 # rotations
 
-function SingleRotation!(grandparent::AbstractNode, 
-                        parent::AbstractNode, 
-                        child::AbstractNode, 
+function SingleRotation!(grandparent::HBN, 
+                        parent::HBN, 
+                        child::HBN, 
                         dir1::Symbol)
     dir2 = opposite(dir1)
     sister = getproperty(parent, dir2)
@@ -74,9 +74,9 @@ function SingleRotation!(grandparent::AbstractNode,
     return ggparent, parent, child, dir3
 end
 
-function DoubleRotation!(grandparent::AbstractNode, 
-                        parent::AbstractNode, 
-                        child::AbstractNode,
+function DoubleRotation!(grandparent::HBN, 
+                        parent::HBN, 
+                        child::HBN,
                         dir1::Symbol,
                         dir2::Symbol)
     ggparent = grandparent.parent
@@ -94,8 +94,8 @@ function DoubleRotation!(grandparent::AbstractNode,
     return ggparent, child, parent, dir3
 end
 
-function Zig!(grandparent::SimpleBinaryNode, 
-            parent::SimpleBinaryNode, 
+function Zig!(grandparent::SBN, 
+            parent::SBN, 
             dir1::Symbol)
     dir2 = opposite(dir1)
     child = getproperty(parent, dir2)
@@ -106,9 +106,9 @@ function Zig!(grandparent::SimpleBinaryNode,
 end
 
 
-function ZigZig!(grandparent::SimpleBinaryNode,
-                parent::SimpleBinaryNode,
-                child::SimpleBinaryNode,
+function ZigZig!(grandparent::SBN,
+                parent::SBN,
+                child::SBN,
                 dir1::Symbol,
                 dir2::Symbol)
     sister = getproperty(parent, dir2)
@@ -123,9 +123,9 @@ function ZigZig!(grandparent::SimpleBinaryNode,
     return ggparent, dir3
 end
 
-function ZigZag!(grandparent::SimpleBinaryNode,
-                parent::SimpleBinaryNode,
-                child::SimpleBinaryNode,
+function ZigZag!(grandparent::SBN,
+                parent::SBN,
+                child::SBN,
                 dir1::Symbol,
                 dir2::Symbol)
     grandchild1 = getproperty(child, dir1)
@@ -140,17 +140,17 @@ function ZigZag!(grandparent::SimpleBinaryNode,
     return ggparent, dir3
 end 
 
-function TopDownZig!(parent::SimpleBinaryNode,
-                    child::SimpleBinaryNode,
+function TopDownZig!(parent::SBN,
+                    child::SBN,
                     dir::Symbol)
     cut!(parent, child, dir)
     dir == :left ? (return child, NullNode(), parent) : (return child, parent, NullNode())
 end
 
 
-function TopDownZigZig!(grandparent::SimpleBinaryNode,
-                    parent::SimpleBinaryNode,
-                    child::SimpleBinaryNode,
+function TopDownZigZig!(grandparent::SBN,
+                    parent::SBN,
+                    child::SBN,
                     dir1::Symbol,
                     dir2::Symbol)
     sister = getproperty(parent, dir2)
@@ -161,9 +161,9 @@ function TopDownZigZig!(grandparent::SimpleBinaryNode,
     dir1 == :left ? (return child, NullNode(), parent) : (return child, parent, NullNode())
 end
 
-function TopDownZigZag!(grandparent::SimpleBinaryNode,
-                    parent::SimpleBinaryNode,
-                    child::SimpleBinaryNode,
+function TopDownZigZag!(grandparent::SBN,
+                    parent::SBN,
+                    child::SBN,
                     dir1::Symbol,
                     dir2::Symbol)
     cut!(grandparent, parent, dir1)
@@ -174,8 +174,8 @@ end
 # -----------------------------------------------------------------------------------------------
 # BinarySearchTree traverse
 
-function traverse!(tree::BinarySearchTree,
-                node::HeightBinaryNode,
+function traverse!(tree::BST,
+                node::HBN,
                 nodes...)
     value = max(-1, [child.height for child in node]...) + 1
     if node.height != value && (node.height = value; true)
@@ -184,11 +184,11 @@ function traverse!(tree::BinarySearchTree,
     return tree
 end
 
-traverse!(tree::BinarySearchTree,
-        ::SimpleBinaryNode,
+traverse!(tree::BST,
+        ::SBN,
         nodes...) = tree
 
-function traverse!(tree::BinarySearchTree,
+function traverse!(tree::BST,
                 ::NullNode,
                 nodes...)
     tree.height = first(nodes).height
@@ -201,7 +201,7 @@ end
 ## Root case
 function traverse!(tree::AVLTree,
                 ::NullNode,
-                parent::HeightBinaryNode,
+                parent::HBN,
                 nodes...)
     tree.height = parent.height
     return tree
@@ -210,7 +210,7 @@ end
 # traverse back to root
 function AVLtraverse!(tree::AVLTree,
                     ::NullNode,
-                    parent::HeightBinaryNode,
+                    parent::HBN,
                     nodes...)
     tree.root = parent
     tree.height = parent.height
@@ -219,8 +219,8 @@ end
 
 ## insert! case
 function traverse!(tree::AVLTree,
-                parent::HeightBinaryNode,
-                child::HeightBinaryNode)
+                parent::HBN,
+                child::HBN)
     if parent.height == 0
         parent.height = 1
         return AVLtraverse!(tree, parent.parent, parent, child, getdir(parent.parent, parent), getdir(parent, child))
@@ -230,9 +230,9 @@ function traverse!(tree::AVLTree,
 end 
 
 function AVLtraverse!(tree::AVLTree,
-                    grandparent::HeightBinaryNode,
-                    parent::HeightBinaryNode,
-                    child::HeightBinaryNode,
+                    grandparent::HBN,
+                    parent::HBN,
+                    child::HBN,
                     dir1::Symbol,
                     dir2::Symbol)
     delta = [child.height for child in grandparent]
@@ -258,7 +258,7 @@ function AVLtraverse!(tree::AVLTree,
 end
 
 ## delete! case
-function traverse!(tree::AVLTree, grandparent::HeightBinaryNode)
+function traverse!(tree::AVLTree, grandparent::HBN)
     parent = grandparent.left
     aunt = grandparent.right
     if height(parent) > height(aunt)
@@ -270,8 +270,8 @@ end
 
 
 function AVLtraverse!(tree::AVLTree,
-                    grandparent::HeightBinaryNode, 
-                    aunt::Union{NullNode, HeightBinaryNode},
+                    grandparent::HBN, 
+                    aunt::Union{NullNode, HBN},
                     dir1::Symbol,
                     dir2::Symbol)
     parent, child1, child2 = findchild(grandparent, dir1)
@@ -281,6 +281,7 @@ function AVLtraverse!(tree::AVLTree,
         if height(child1) > height(child2)
             grandparent, parent, child, dir3 = SingleRotation!(grandparent, parent, child1, dir1)
         elseif height(child1) < height(child2)
+            println("good")
             grandparent, parent, child, dir3 = DoubleRotation!(grandparent, parent, child2, dir1, dir2)
         else
             grandparent, parent, child, dir3 = DoubleRotation!(grandparent, parent, child2, dir1, dir2)
@@ -309,8 +310,8 @@ end
 # ------------------------------------------------------------------------------------
 # Splay tree traverse
 function Splaytraverse!(tree::SplayTree,
-                    parent::SimpleBinaryNode,
-                    child::SimpleBinaryNode,
+                    parent::SBN,
+                    child::SBN,
                     dir2::Symbol)
     grandparent = parent.parent
     if isnull(grandparent)
@@ -332,7 +333,7 @@ end
 # Root case
 function Splaytraverse!(tree::SplayTree,
                     ::NullNode,
-                    child::SimpleBinaryNode,
+                    child::SBN,
                     ::Nothing)
     tree.root = child
     return tree

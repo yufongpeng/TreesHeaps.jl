@@ -15,8 +15,8 @@ function Base.iterate(node::AbstractBinaryNode, state::Bool)
     !isnull(node.right) && return (node.right, true)
     return nothing
 end
-Base.IteratorSize(::Type{<: HeightBinaryNode})  = Base.SizeUnknown()
-Base.IteratorSize(::Type{<: SimpleBinaryNode})  = Base.SizeUnknown()
+Base.IteratorSize(::Type{<: HBN})  = Base.SizeUnknown()
+Base.IteratorSize(::Type{<: SBN})  = Base.SizeUnknown()
 
 #-----------------------------------------------------------------------------------
 # Implement eltype, size and length
@@ -25,7 +25,8 @@ Base.IteratorSize(::Type{<: SimpleBinaryNode})  = Base.SizeUnknown()
 
 The type of nodes.
 """
-Base.eltype(::Type{N}) where {N <: AbstractBinaryNode{T}} where T = N
+Base.eltype(::Type{T}) where {T <: AbstractTree{N}} where N = N
+Base.eltype(::Type{N}) where {N <: AbstractNode{T}} where T = N
 """
     size(tree::AbstractTree)
 
@@ -83,20 +84,20 @@ PreOrderDFS(tree::AbstractTree) = PreOrderDFS(tree.root)
 print_tree(io::IO, tree::AbstractTree) = print_tree(io, tree.root)
 Base.show(io::IO, tree::AbstractTree) = print_tree(io,tree)
 
-Base.show(io::IO, ::MIME"text/plain", tree::BinarySearchTree{N, T}) where{N, T} = 
-    print(io, "BinarySearchTree{$N, $T}($(tree.size), $(tree.height)):", "\n", tree)
+Base.show(io::IO, ::MIME"text/plain", tree::BST{N}) where N = 
+    print(io, "BinarySearchTree{$N}($(tree.size), $(tree.height)):", "\n", tree)
 
-Base.show(io::IO, ::MIME"text/plain", tree::AVLTree{N, T}) where{N, T} = 
-    print(io, "AVLTree{$N, $T}($(tree.size), $(tree.height)):", "\n", tree)
+Base.show(io::IO, ::MIME"text/plain", tree::AVLTree{N}) where N = 
+    print(io, "AVLTree{$N}($(tree.size), $(tree.height)):", "\n", tree)
 
-Base.show(io::IO, ::MIME"text/plain", tree::SplayTree{N,T}) where{N,T} = 
-    print(io, "SplayTree{$N, $T}($(tree.size)):", "\n", tree)
+Base.show(io::IO, ::MIME"text/plain", tree::SplayTree{N}) where N = 
+    print(io, "SplayTree{$N}($(tree.size)):", "\n", tree)
 
 # show node
-Base.show(io::IO, node::HeightBinaryNode) = print(io, " data: $(node.data)\n", " parent: $(node.parent.data)\n",
+Base.show(io::IO, node::HBN) = print(io, " data: $(node.data)\n", " parent: $(node.parent.data)\n",
                                             " left: $(node.left.data)\n", " right: $(node.right.data)\n",
                                             " height: $(node.height)")
-Base.show(io::IO, node::SimpleBinaryNode) = print(io, " data: $(node.data)\n", " parent: $(node.parent.data)\n",
+Base.show(io::IO, node::SBN) = print(io, " data: $(node.data)\n", " parent: $(node.parent.data)\n",
                                             " left: $(node.left.data)\n", " right: $(node.right.data)\n")
 
 Base.show(::IO, ::NullNode) = nothing
@@ -110,7 +111,7 @@ Base.show(io::IO, ::MIME"text/plain", node::SimpleBinaryNode{T}) where T =
 
 # --------------------------------------------------------------------------------------------------------------------
 # Equality
-function ==(node1::AbstractNode, node2::AbstractNode) 
+function ==(node1::AbstractBinaryNode, node2::AbstractBinaryNode) 
     node1.data == node2.data && (getproperty(node1, :left) == getproperty(node2, :left)) && (getproperty(node1, :right) == getproperty(node2, :right)) 
 end
 
@@ -118,7 +119,6 @@ end
 ==(node1::NullNode, node2::AbstractNode) = false
 ==(node1::NullNode, node2::NullNode) = true
 
-==(tree1::T, tree2::T) where {T <: AbstractTree} = 
+==(tree1::AbstractTree, tree2::AbstractTree) = 
     tree1.root == tree2.root
 
-==(tree1::AbstractTree, tree2::AbstractTree) = false

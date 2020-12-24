@@ -8,10 +8,10 @@ export
     AbstractTree, AbstractNode, AbstractBinaryNode,
 
     # Nodes
-    NullNode, SimpleBinaryNode, HeightBinaryNode, 
+    NullNode, SimpleBinaryNode, SBN, HeightBinaryNode, HBN, RedBlackBinaryNode, RBN,  
     
     # Trees
-    BinarySearchTree, BST, AVLTree, AVL, SplayTree, Splay,
+    BinarySearchTree, BST, AVLTree, AVL, SplayTree, Splay, RedBlackTree, RBT,
 
     # preoperty
     height, isnull, 
@@ -35,8 +35,7 @@ include("Balance.jl")
 include("Interface.jl")
 
 # Avoid importing Plots as default
-const path = @__DIR__()
-plot_init() = include("$path\\Plot.jl")
+plot_init() = include(joinpath(@__DIR__(), "Plot.jl"))
 
 __init__() = precompile(plot_init,())
 

@@ -1,7 +1,7 @@
 # ===================================================================================
 # AbstractTypes
 
-abstract type AbstractTree{N, T} end
+abstract type AbstractTree{N} end
 abstract type AbstractNode{T} end
 abstract type AbstractBinaryNode{T} <: AbstractNode{T} end
 
@@ -21,8 +21,9 @@ end
 
 """
     SimpleBinaryNode{T} <: AbstractBinaryNode{T}
-    SimpleBinaryNode{T}(data)
-    SimpleBinaryNode(data)
+    const SBN = SimpleBinaryNode
+    SBN(data)
+    SBN(::Type{T}, data)
 
 Binary nodes without height information.
 
@@ -33,9 +34,9 @@ Binary nodes without height information.
 """
 mutable struct SimpleBinaryNode{T} <: AbstractBinaryNode{T}
     data::T
-    parent::Union{SimpleBinaryNode{T},NullNode}
-    left::Union{SimpleBinaryNode{T},NullNode}
-    right::Union{SimpleBinaryNode{T},NullNode}
+    parent::Union{SimpleBinaryNode{T}, NullNode}
+    left::Union{SimpleBinaryNode{T}, NullNode}
+    right::Union{SimpleBinaryNode{T}, NullNode}
 
     # Initial constructor
     SimpleBinaryNode{T}(data) where T = new{T}(convert(T, data), NullNode(), NullNode(), NullNode())
@@ -43,11 +44,13 @@ end
 
 const SBN = SimpleBinaryNode
 SBN(data) = SBN{typeof(data)}(data)
+SBN(::Type{T}, data) where T = SBN{T}(data)
 
 """
     HeightBinaryNode{T} <: AbstractBinaryNode{T}
-    HeightBinaryNode{T}(data)
-    HeightBinaryNode(data)
+    const HBN = HeightBinaryNode
+    HBN(data)
+    HBN(::Type{T}, data)
 
 Binary nodes without height information. 
 
@@ -57,9 +60,9 @@ For other fields, please see `SimpleBinaryNode`.
 """
 mutable struct HeightBinaryNode{T} <: AbstractBinaryNode{T}
     data::T
-    parent::Union{HeightBinaryNode{T},NullNode}
-    left::Union{HeightBinaryNode{T},NullNode}
-    right::Union{HeightBinaryNode{T},NullNode}
+    parent::Union{HeightBinaryNode{T}, NullNode}
+    left::Union{HeightBinaryNode{T}, NullNode}
+    right::Union{HeightBinaryNode{T}, NullNode}
     height::Int
 
     # Initial constructor
@@ -68,9 +71,13 @@ end
 
 const HBN = HeightBinaryNode
 HBN(data) = HBN{typeof(data)}(data)
+HBN(::Type{T}, data) where T = HBN{T}(data)
 
 """
     RedBlackBinaryNode{T} <: AbstractBinaryNode{T}
+    const RBN = RedBlackBinaryNode
+    RBN(data)
+    RBN(::Type{T}, data)
 
 Binary nodes for red black tree.
 
@@ -80,113 +87,151 @@ For other fields, please see `SimpleBinaryNode`.
 """
 mutable struct RedBlackBinaryNode{T} <: AbstractBinaryNode{T}
     data::T
-    parent::Union{RedBlackBinaryNode{T},NullNode}
-    left::Union{RedBlackBinaryNode{T},NullNode}
-    right::Union{RedBlackBinaryNode{T},NullNode}
+    parent::Union{RedBlackBinaryNode{T}, NullNode}
+    left::Union{RedBlackBinaryNode{T}, NullNode}
+    right::Union{RedBlackBinaryNode{T}, NullNode}
     red::Bool # true for red, false for black
 
     # Initial constructor
     RedBlackBinaryNode{T}(data) where T = new{T}(convert(T, data), NullNode(), NullNode(), NullNode(), false)
 end
 
+const RBN = RedBlackBinaryNode
+RBN(data) = RBN{typeof(data)}(data)
+RBN(::Type{T}, data) where T = RBN{T}(data)
+
 # ------------------------------------------------------------------------------------
 # Trees
 
 """
-    BinarySearchTree{T} <: AbstractTree{T}
-    BinarySearchTree{T}()
-    BinarySearchTree{SBN, T}(data)
-    BinarySearchTree{HBN, T}(data)
+    BinarySearchTree <: AbstractTree
+
+Binary search tree. Nodes can be `SimpleBinaryNode` or `HeightBinaryNode`.
+
+# Constructors
     const BST = BinarySearchTree
-    BST()
-    BST(data)
+    BST(height::Bool = false)
+    BST(data, height::Bool = false)
+    BST(::Type{T}, height::Bool = false)
+    BST(::Type{T}, data, height::Bool = false)
 
-Binary search tree.
-
-Nodes can be `SimpleBinaryNode` or `HeightBinaryNode`.
-
+# Fields
 * `root`: the root node.
 * `size`: number of nodes in this tree.
 * `height`: the height of root. Only valid when using `HeightBinaryNode`.
 """
-mutable struct BinarySearchTree{N,T} <: AbstractTree{N, T}
-    root::Union{AbstractBinaryNode, NullNode}
+mutable struct BinarySearchTree{N <: AbstractBinaryNode} <: AbstractTree{N}
+    root::Union{N, NullNode}
     size::Int
     height::Int # Only valid when using HBN
 
     # Initial constructor
-    BinarySearchTree{N, T}() where {T, N <: AbstractBinaryNode} = new{N, T}(NullNode(), 0, -1)
+    BinarySearchTree{N}() where N = new{N}(NullNode(), 0, -1)
     # W/ data constructor
-    BinarySearchTree{SBN, T}(data) where T = new{SBN, T}(SBN(convert(T, data)), 1, 0)
-    BinarySearchTree{HBN, T}(data) where T = new{HBN, T}(HBN(convert(T, data)), 1, 0)
+    BinarySearchTree{N}(data) where N = new{N}(N(data), 1, 0)
 end
 
 const BST = BinarySearchTree
-BST(height::Bool = false) = height ? BST{HBN, Any}() : BST{SBN, Any}()
-BST{T}(height::Bool = false) where T = height ? BST{HBN, T}() : BST{SBN, T}()
-BST(data, height::Bool = false) = height ? BST{HBN, typeof(data)}(data) : BST{SBN, typeof(data)}(data)
-BST{T}(data, height::Bool = false) where T = height ? BST{HBN, T}(data) : BST{SBN, T}(data)
+BST(height::Bool = false) = height ? BST{HBN{Any}}() : BST{SBN{Any}}()
+BST(::Type{T}, height::Bool = false) where T = height ? BST{HBN{T}}() : BST{SBN{T}}()
+BST(data, height::Bool = false) = height ? BST{HBN{typeof(data)}}(data) : BST{SBN{typeof(data)}}(data)
+BST(::Type{T}, data, height::Bool = false) where T = height ? BST{HBN{T}}(data) : BST{SBN{T}}(data)
 
 """
-    AVLTree{T} <: AbstractTree{T}
+    AVLTree <: AbstractTree
+
+AVL tree. Nodes must be `HeightBinaryNode` to be able to do rotations.
+
+# Constructors
     AVLTree{T}()
     AVLTree{T}(data)
     AVL()
     AVL(data)
 
-AVL tree.
-
-Nodes must be `HeightBinaryNode` to be able to do rotations.
-
+# Fields    
 * `root`: the root node.
 * `size`: number of nodes in this tree.
 * `height`: the height of root.
 """
-mutable struct AVLTree{N, T} <: AbstractTree{N, T}
-    root::Union{HBN{T}, NullNode}
+mutable struct AVLTree{N <: HBN} <: AbstractTree{N}
+    root::Union{N, NullNode}
     size::Int
     height::Int
 
     # Initial constructor
-    AVLTree{HBN, T}() where T = new{HBN, T}(NullNode(), 0, -1)
+    AVLTree{N}() where N = new{N}(NullNode(), 0, -1)
     # W/ data constructor
-    AVLTree{HBN, T}(data) where T = new{HBN, T}(HeightBinaryNode(convert(T, data)), 1, 0)
+    AVLTree{N}(data) where N = new{N}(N(data), 1, 0)
 end
 
 const AVL = AVLTree
-AVL() = AVL{HBN, Any}()
-AVL{T}() where T = AVL{HBN, T}()
-AVL(data) = AVL{HBN, typeof(data)}(data)
-AVL{T}(data) where T = AVL{HBN, T}(data)
+AVL() = AVL{HBN{Any}}()
+AVL(::Type{T}) where T = AVL{HBN{T}}()
+AVL(data) = AVL{HBN{typeof(data)}}(data)
+AVL(::Type{T}, data) where T = AVL{HBN{T}}(data)
 
 """
-    SplayTree{N, T} <: AbstractTree{N, T}
+    SplayTree <: AbstractTree
+
+Splay tree. Nodes should be `SimpleBinaryNode`, though `HeightBinaryNode` is ok in theory.
+
+# Constructors
+    const Splay = SplayTree
     Splay()
-    Splay{T}()
+    Splay(::Type{T})
     Splay(data)
-    Splay{T}(data)
+    Splay(::Type{T}, data)
 
-Splay tree.
-
-Nodes should be `SimpleBinaryNode`, though `HeightBinaryNode` is ok in theory.
-    
+# Fields
 * `root`: the root node.
 * `size`: number of nodes in this tree.
 """
-mutable struct SplayTree{N, T} <: AbstractTree{N, T}
-    root::Union{SBN{T}, NullNode}
+mutable struct SplayTree{N <: SBN} <: AbstractTree{N}
+    root::Union{N, NullNode}
     size::Int
 
     # Initial constructor
-    SplayTree{SBN, T}() where T = new{SBN, T}(NullNode(), 0)
+    SplayTree{N}() where N = new{N}(NullNode(), 0)
     # W/ data constructor
-    SplayTree{SBN, T}(data) where T = new{SBN, T}(SimpleBinaryNode(convert(T, data)), 1)
+    SplayTree{N}(data) where N  = new{N}(N(data), 1)
 end
 
 const Splay = SplayTree
-Splay() = Splay{SBN, Any}()
-Splay{T}() where T = Splay{SBN, T}()
-Splay(data) = Splay{SBN, typeof(data)}(data)
-Splay{T}(data) where T = Splay{SBN, T}(data)
+Splay() = Splay{SBN{Any}}()
+Splay(::Type{T}) where T = Splay{SBN{T}}()
+Splay(data) = Splay{SBN{typeof(data)}}(data)
+Splay(::Type{T}, data) where T = Splay{SBN{T}}(data)
+
+"""
+    RedBlackTree <: AbstractTree
+
+Red black tree. Nodes should be `RedBlackBinaryNode`.
+
+# Constructors
+    const RBT = RedBlackTree
+    RBT()
+    RBT(::Type{T})
+    RBT(data)
+    RBT(::Type{T}, data)
+
+# Fields
+* `root`: the root node.
+* `size`: number of nodes in this tree.
+"""
+mutable struct RedBlackTree{N <: RBN} <: AbstractTree{N}
+    root::Union{N, NullNode}
+    size::Int
+
+    # Initial constructor
+    RedBlackTree{N}() where N = new{N}(NullNode(), 0)
+    # W/ data constructor
+    RedBlackTree{N}(data) where N = new{N}(N(data), 1)
+end
+
+const RBT = RedBlackTree
+RBT() = RBT{RBN{Any}}()
+RBT(::Type{T}) where T = RBT{RBN{T}}()
+RBT(data) = RBT{RBN{typeof(data)}}(data)
+RBT(::Type{T}, data) where T = RBT{RBN{T}}(data)
 # ------------------------------------------------------------------------------------------
 const NSBN = Union{NullNode, SimpleBinaryNode}
