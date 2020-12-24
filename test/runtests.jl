@@ -1,6 +1,7 @@
 using Test, TreesHeaps
 
 test_show(x) = show(IOBuffer(), x)
+test_showmime(x) = show(IOBuffer(), MIME{Symbol("text/plain")}(), x)
 
 @testset "Constructors" begin
     @test SBN(1) == SBN(Int, 1.0)
@@ -46,6 +47,17 @@ end
     @test NullNode() == NullNode()
     @test s1 == s2
     @test findmax(NullNode()) == NullNode() == findmin(NullNode())
+    test_show(s1)
+    test_show(s2)
+    test_showmime(s1)
+    test_showmime(s2)
+    test_show(s1.root)
+    test_show(s2.root)
+    test_showmime(s1.root)
+    test_showmime(s2.root)
+    test_show(NullNode())
+    test_showmime(NullNode())
+    plot_init()
 end
 
 @testset "BinarySearchTree" begin
@@ -70,6 +82,7 @@ end
     @test findmax(s).data == 2.5
     @test findmin(s).data == -1
     test_show(s)
+    test_showmime(s)
 end
 
 @testset "BinarySearchTree with height" begin
@@ -95,6 +108,7 @@ end
     delete!(s, 0)
     @test isnull(s.root)
     test_show(s)
+    test_showmime(s)
 end
 
 @testset "AVLTree" begin
@@ -128,6 +142,7 @@ end
     @test size(s) == 7
     @test length(s) == 2
     test_show(s)
+    test_showmime(s)
 end
 
 @testset "SplayTree" begin
@@ -156,6 +171,7 @@ end
     @test s.root.left.data == 1.0
     @test size(s) == 6
     test_show(s)
+    test_showmime(s)
 end
 
 @testset "SplayTree with topdown operations" begin
@@ -186,5 +202,6 @@ end
     nodes = [n for n in s.root]
     @test first(nodes) == s.root.right
     test_show(s)
+    test_showmime(s)
 end
 
