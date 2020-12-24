@@ -35,8 +35,7 @@ include("Balance.jl")
 include("Interface.jl")
 
 # Avoid importing Plots as default
-const path = @__DIR__()
-plot_init() = include("$path\\Plot.jl")
+plot_init() = include(joinpath(@__DIR__(), "Plot.jl"))
 
 __init__() = precompile(plot_init,())
 
