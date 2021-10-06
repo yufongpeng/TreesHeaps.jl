@@ -1,7 +1,7 @@
 name = "TreesHeaps"
 uuid = "11f3e0e9-035a-4796-9f15-e39fd2303e8e"
 authors = ["Yu-Fong Peng <sciphypar@gmail.com>"]
-version = "0.2.1"
+version = "0.2.2-DEV"
 
 [deps]
 DataStructures = "864edb3b-99cc-5e75-8d2d-829cb0a9cfe8"
