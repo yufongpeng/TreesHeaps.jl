@@ -1,19 +1,19 @@
 # ==================================================================================
 # Interface for Base and AbstractTrees
 
-# nextsibling,parentlinks,siblinglinks,children,StoredParents,StoredSiblings
+# nextsibling, parentlinks, siblinglinks, children, StoredParents, StoredSiblings
 
 #----------------------------------------------------------------------------------
 # Implement iteration over the immediate children of a node
 function Base.iterate(node::AbstractBinaryNode)
     !isnull(node.left) && return (node.left, false)
     !isnull(node.right) && return (node.right, true)
-    return nothing
+    nothing
 end
 function Base.iterate(node::AbstractBinaryNode, state::Bool)
     state && return nothing
     !isnull(node.right) && return (node.right, true)
-    return nothing
+    nothing
 end
 Base.IteratorSize(::Type{<: HBN})  = Base.SizeUnknown()
 Base.IteratorSize(::Type{<: SBN})  = Base.SizeUnknown()
@@ -65,7 +65,7 @@ function AbstractTrees.nextsibling(::AbstractBinaryNode, child::AbstractBinaryNo
         child === p.right && return nothing
         return p.right
     end
-    return nothing
+    nothing
 end
 
 pairs(node::AbstractBinaryNode) = enumerate(node)
@@ -82,7 +82,7 @@ PreOrderDFS(tree::AbstractTree) = PreOrderDFS(tree.root)
 
 # show tree
 print_tree(io::IO, tree::AbstractTree) = print_tree(io, tree.root)
-Base.show(io::IO, tree::AbstractTree) = print_tree(io,tree)
+Base.show(io::IO, tree::AbstractTree) = print_tree(io, tree)
 
 Base.show(io::IO, ::MIME"text/plain", tree::BST{N}) where N = 
     print(io, "BinarySearchTree{$N}($(tree.size), $(tree.height)):", "\n", tree)

@@ -5,7 +5,7 @@
 # nodes operations
 
 opposite(dir::Symbol) = dir == :left ? (:right) : (:left)
-opposite(dir::Nothing) = nothing ###
+opposite(::Nothing) = nothing ###
 
 isnull(Node::AbstractNode) = false
 isnull(Node::NullNode) = true
@@ -28,6 +28,7 @@ link!(parent::AbstractNode, child::NullNode, dir::Symbol) = setfield!(parent, di
 link!(parent::NullNode, child::AbstractNode, ::Symbol) = setfield!(child, :parent, parent)
 link!(parent::NullNode, child::AbstractNode, ::Nothing) = setfield!(child, :parent, parent)
 link!(::NullNode, ::NullNode, ::Symbol) = nothing
+link!(::NullNode, ::NullNode, ::Nothing) = nothing
 
 """
     cut!(<parent>, <child>, <direction>)
@@ -49,12 +50,10 @@ cut!(::NullNode, ::AbstractNode, ::Symbol) = nothing
 
 Get direction of parent to child.
 """
-getdir(parent::AbstractBinaryNode, child) = parent.left == child ? (:left) : (:right)
+getdir(parent::AbstractBinaryNode, child::AbstractBinaryNode) = parent.left == child ? (:left) : (:right)
 getdir(::NullNode, ::AbstractNode) = nothing
+getdir(::AbstractNode, ::NullNode) = nothing
 getdir(::NullNode, ::NullNode) = nothing
-
-getproperty(::NullNode, ::Symbol) = NullNode
-getproperty(::NullNode, ::Nothing) = NullNode
 
 # -------------------------------------------------------------------------------------------------
 # rotations
@@ -71,7 +70,7 @@ function SingleRotation!(grandparent::HBN,
     dir3 = getdir(ggparent, grandparent)
     link!(ggparent, parent, dir3)
     grandparent.height -= 1 
-    return ggparent, parent, child, dir3
+    ggparent, parent, child, dir3
 end
 
 function DoubleRotation!(grandparent::HBN, 
@@ -91,7 +90,7 @@ function DoubleRotation!(grandparent::HBN,
     child.height += 1
     parent.height -= 1
     grandparent.height -= 1
-    return ggparent, child, parent, dir3
+    ggparent, child, parent, dir3
 end
 
 function Zig!(grandparent::SBN, 
@@ -102,7 +101,7 @@ function Zig!(grandparent::SBN,
     link!(grandparent, child, dir1)
     link!(parent, grandparent, dir2)
     parent.parent = NullNode()
-    return 
+    parent
 end
 
 
@@ -120,7 +119,7 @@ function ZigZig!(grandparent::SBN,
     link!(parent, grandchild, dir1)
     link!(child, parent, dir2)
     link!(ggparent, child, dir3)
-    return ggparent, dir3
+    ggparent, dir3
 end
 
 function ZigZag!(grandparent::SBN,
@@ -137,14 +136,14 @@ function ZigZag!(grandparent::SBN,
     link!(grandparent, grandchild2, dir1)
     link!(child, grandparent, dir2)
     link!(ggparent, child, dir3)
-    return ggparent, dir3
+    ggparent, dir3
 end 
 
 function TopDownZig!(parent::SBN,
                     child::SBN,
                     dir::Symbol)
     cut!(parent, child, dir)
-    dir == :left ? (return child, NullNode(), parent) : (return child, parent, NullNode())
+    dir == :left ? (child, NullNode(), parent) : (child, parent, NullNode())
 end
 
 
@@ -158,7 +157,7 @@ function TopDownZigZig!(grandparent::SBN,
     cut!(parent, child, dir1)
     link!(parent, grandparent, dir2)
     link!(grandparent, sister, dir1)
-    dir1 == :left ? (return child, NullNode(), parent) : (return child, parent, NullNode())
+    dir1 == :left ? (child, NullNode(), parent) : (child, parent, NullNode())
 end
 
 function TopDownZigZag!(grandparent::SBN,
@@ -168,7 +167,7 @@ function TopDownZigZag!(grandparent::SBN,
                     dir2::Symbol)
     cut!(grandparent, parent, dir1)
     cut!(parent, child, dir2)
-    dir1 == :left ? (return child, parent, grandparent) : (return child, grandparent, parent)
+    dir1 == :left ? (child, parent, grandparent) : (child, grandparent, parent)
 end 
 
 # -----------------------------------------------------------------------------------------------
@@ -177,11 +176,12 @@ end
 function traverse!(tree::BST,
                 node::HBN,
                 nodes...)
-    value = max(-1, [child.height for child in node]...) + 1
-    if node.height != value && (node.height = value; true)
+    value = max(-1, height(node.left), height(node.right)) + 1
+    if node.height != value
+        node.height = value
         return traverse!(tree, node.parent, node)
     end
-    return tree
+    tree
 end
 
 traverse!(tree::BST,
@@ -192,7 +192,7 @@ function traverse!(tree::BST,
                 ::NullNode,
                 nodes...)
     tree.height = first(nodes).height
-    return tree
+    tree
 end
 
 # --------------------------------------------------------------------------------------------------
@@ -204,7 +204,7 @@ function traverse!(tree::AVLTree,
                 parent::HBN,
                 nodes...)
     tree.height = parent.height
-    return tree
+    tree
 end
 
 # traverse back to root
@@ -214,7 +214,7 @@ function AVLtraverse!(tree::AVLTree,
                     nodes...)
     tree.root = parent
     tree.height = parent.height
-    return tree
+    tree
 end
 
 ## insert! case
@@ -224,9 +224,8 @@ function traverse!(tree::AVLTree,
     if parent.height == 0
         parent.height = 1
         return AVLtraverse!(tree, parent.parent, parent, child, getdir(parent.parent, parent), getdir(parent, child))
-    else
-        return tree
     end
+    tree
 end 
 
 function AVLtraverse!(tree::AVLTree,
@@ -244,16 +243,16 @@ function AVLtraverse!(tree::AVLTree,
         else
             grandparent, parent, child, dir3 = DoubleRotation!(grandparent, parent, child, dir1, dir2)
         end
-        return AVLtraverse!(tree, grandparent, parent, child, dir3, dir1)
+        AVLtraverse!(tree, grandparent, parent, child, dir3, dir1)
     else
-        value = max(delta...) + 1
-        if grandparent.height != value && (grandparent.height = value; true)
+        value = maximum(delta) + 1
+        if grandparent.height != value
             # upper node is affected
+            grandparent.height = value
             ggparent = grandparent.parent
             return AVLtraverse!(tree, ggparent, grandparent, parent, getdir(ggparent, grandparent), dir1)
-        else
-            return tree
         end
+        tree
     end
 end
 
@@ -262,9 +261,9 @@ function traverse!(tree::AVLTree, grandparent::HBN)
     parent = grandparent.left
     aunt = grandparent.right
     if height(parent) > height(aunt)
-        return AVLtraverse!(tree, grandparent, aunt, :left, :right)
+        AVLtraverse!(tree, grandparent, aunt, :left, :right)
     else
-        return AVLtraverse!(tree, grandparent, parent, :right, :left)
+        AVLtraverse!(tree, grandparent, parent, :right, :left)
     end
 end 
 
@@ -281,7 +280,6 @@ function AVLtraverse!(tree::AVLTree,
         if height(child1) > height(child2)
             grandparent, parent, child, dir3 = SingleRotation!(grandparent, parent, child1, dir1)
         elseif height(child1) < height(child2)
-            println("good")
             grandparent, parent, child, dir3 = DoubleRotation!(grandparent, parent, child2, dir1, dir2)
         else
             grandparent, parent, child, dir3 = DoubleRotation!(grandparent, parent, child2, dir1, dir2)
@@ -293,17 +291,17 @@ function AVLtraverse!(tree::AVLTree,
             end
             return tree
         end
-        return AVLtraverse!(tree, grandparent, parent, opposite(dir3), dir3)
+        AVLtraverse!(tree, grandparent, parent, opposite(dir3), dir3)
     else
         value = max(height(parent), height(aunt)) + 1  
-        if grandparent.height != value && (grandparent.height = value; true)
+        if grandparent.height != value
             # upper node is affected
+            grandparent.height = value
             ggparent = grandparent.parent
             dir3 = getdir(ggparent, grandparent)
             return AVLtraverse!(tree, ggparent, grandparent, opposite(dir3), dir3)
-        else
-            return tree
         end
+        tree
     end
 end  
 
@@ -316,9 +314,9 @@ function Splaytraverse!(tree::SplayTree,
     grandparent = parent.parent
     if isnull(grandparent)
         # to the root
-        Zig!(parent,child,dir2)
+        Zig!(parent, child, dir2)
         tree.root = child
-        return tree
+        tree
     else
         dir1 = getdir(grandparent, parent)
         if dir1 == dir2
@@ -326,7 +324,7 @@ function Splaytraverse!(tree::SplayTree,
         else
             parent, dir3 = ZigZag!(grandparent, parent, child, dir1, dir2)
         end
-        return Splaytraverse!(tree, parent, child, dir3)
+        Splaytraverse!(tree, parent, child, dir3)
     end
 end
 
@@ -336,5 +334,5 @@ function Splaytraverse!(tree::SplayTree,
                     child::SBN,
                     ::Nothing)
     tree.root = child
-    return tree
+    tree
 end
