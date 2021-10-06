@@ -1,15 +1,15 @@
 name = "TreesHeaps"
 uuid = "11f3e0e9-035a-4796-9f15-e39fd2303e8e"
 authors = ["Yu-Fong Peng <sciphypar@gmail.com>"]
-version = "0.2.0"
+version = "0.2.1"
 
 [deps]
-AbstractTrees = "1520ce14-60c1-5f80-bbc7-55ef81b5835c"
 DataStructures = "864edb3b-99cc-5e75-8d2d-829cb0a9cfe8"
+AbstractTrees = "1520ce14-60c1-5f80-bbc7-55ef81b5835c"
 Reexport = "189a3867-3050-52da-a836-e630ba90ab69"
 
 [compat]
-AbstractTrees = "0.3"
-DataStructures = "0.17, 0.18"
-Reexport = "0.2"
 julia = "1.5"
+DataStructures = "0.17, 0.18"
+AbstractTrees = "0.3"
+Reexport = "0.2"
