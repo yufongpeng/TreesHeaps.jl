@@ -13,11 +13,10 @@ abstract type AbstractBinaryNode{T} <: AbstractNode{T} end
 
 Empty node for leaves and roots. 
 """
-struct NullNode <: AbstractNode{Nothing}
-    data::Nothing  
+struct NullNode <: AbstractNode{Nothing} end
 
-    NullNode() = new(nothing)
-end
+Base.getproperty(::NullNode, ::Symbol) = nothing
+Base.getproperty(::NullNode, ::Nothing) = nothing
 
 """
     SimpleBinaryNode{T} <: AbstractBinaryNode{T}
@@ -43,8 +42,6 @@ mutable struct SimpleBinaryNode{T} <: AbstractBinaryNode{T}
 end
 
 const SBN = SimpleBinaryNode
-SBN(data) = SBN{typeof(data)}(data)
-SBN(::Type{T}, data) where T = SBN{T}(data)
 
 """
     HeightBinaryNode{T} <: AbstractBinaryNode{T}
@@ -52,9 +49,9 @@ SBN(::Type{T}, data) where T = SBN{T}(data)
     HBN(data)
     HBN(::Type{T}, data)
 
-Binary nodes without height information. 
+Binary nodes with height information. 
 
-* `height`: if node is the root of a tree, it is 0; otherwise, it is the number of nodes between the node and the farthest node (including both nodes).
+* `height`: if this node is a leaf of tree, it is 0; otherwise, it is the number of nodes between this node and the deepest node (not including itself).
 
 For other fields, please see `SimpleBinaryNode`.
 """
@@ -70,8 +67,6 @@ mutable struct HeightBinaryNode{T} <: AbstractBinaryNode{T}
 end
 
 const HBN = HeightBinaryNode
-HBN(data) = HBN{typeof(data)}(data)
-HBN(::Type{T}, data) where T = HBN{T}(data)
 
 """
     RedBlackBinaryNode{T} <: AbstractBinaryNode{T}
@@ -97,8 +92,15 @@ mutable struct RedBlackBinaryNode{T} <: AbstractBinaryNode{T}
 end
 
 const RBN = RedBlackBinaryNode
-RBN(data) = RBN{typeof(data)}(data)
-RBN(::Type{T}, data) where T = RBN{T}(data)
+
+const NSBN = Union{NullNode, SimpleBinaryNode}
+
+for Node in [:SBN, :HBN, :RBN]
+    @eval begin
+        $Node(data) = $Node{typeof(data)}(data)
+        $Node(::Type{T}, data) where T = $Node{T}(data)
+    end
+end
 
 # ------------------------------------------------------------------------------------
 # Trees
@@ -132,10 +134,24 @@ mutable struct BinarySearchTree{N <: AbstractBinaryNode} <: AbstractTree{N}
 end
 
 const BST = BinarySearchTree
-BST(height::Bool = false) = height ? BST{HBN{Any}}() : BST{SBN{Any}}()
-BST(::Type{T}, height::Bool = false) where T = height ? BST{HBN{T}}() : BST{SBN{T}}()
-BST(data, height::Bool = false) = height ? BST{HBN{typeof(data)}}(data) : BST{SBN{typeof(data)}}(data)
-BST(::Type{T}, data, height::Bool = false) where T = height ? BST{HBN{T}}(data) : BST{SBN{T}}(data)
+BST(;height::Bool = false) = BST(Any; height)
+BST(::Type{T}; height::Bool = false) where T = height ? BST{HBN{T}}() : BST{SBN{T}}()
+BST(data; height::Bool = false) = BST(typeof(data), data; height)
+BST(::Type{T}, data; height::Bool = false) where T = height ? BST{HBN{T}}(data) : BST{SBN{T}}(data)
+
+function BST(datas...; height::Bool = false)
+    data = first(datas)
+    tree = BST(data; height)
+    insert!(tree, datas...)
+    tree
+end
+
+function BST(::Type{T}, datas...; height::Bool = false) where T
+    data = first(datas)
+    tree = BST(T, data; height)
+    insert!(tree, datas...)
+    tree
+end
 
 """
     AVLTree <: AbstractTree
@@ -165,10 +181,6 @@ mutable struct AVLTree{N <: HBN} <: AbstractTree{N}
 end
 
 const AVL = AVLTree
-AVL() = AVL{HBN{Any}}()
-AVL(::Type{T}) where T = AVL{HBN{T}}()
-AVL(data) = AVL{HBN{typeof(data)}}(data)
-AVL(::Type{T}, data) where T = AVL{HBN{T}}(data)
 
 """
     SplayTree <: AbstractTree
@@ -197,10 +209,6 @@ mutable struct SplayTree{N <: SBN} <: AbstractTree{N}
 end
 
 const Splay = SplayTree
-Splay() = Splay{SBN{Any}}()
-Splay(::Type{T}) where T = Splay{SBN{T}}()
-Splay(data) = Splay{SBN{typeof(data)}}(data)
-Splay(::Type{T}, data) where T = Splay{SBN{T}}(data)
 
 """
     RedBlackTree <: AbstractTree
@@ -229,9 +237,32 @@ mutable struct RedBlackTree{N <: RBN} <: AbstractTree{N}
 end
 
 const RBT = RedBlackTree
-RBT() = RBT{RBN{Any}}()
-RBT(::Type{T}) where T = RBT{RBN{T}}()
-RBT(data) = RBT{RBN{typeof(data)}}(data)
-RBT(::Type{T}, data) where T = RBT{RBN{T}}(data)
+
 # ------------------------------------------------------------------------------------------
-const NSBN = Union{NullNode, SimpleBinaryNode}
+
+canonicalnode(::Type{<: AbstractTree}) = SBN
+canonicalnode(::Type{<: AVL}) = HBN
+canonicalnode(::Type{<: RBT}) = RBN
+
+for Tree in [:AVL, :Splay, :RBT]
+    @eval begin
+        $Tree() = $Tree{canonicalnode($Tree){Any}}()
+        $Tree(::Type{T}) where T = $Tree{canonicalnode($Tree){T}}()
+        $Tree(data) = $Tree{canonicalnode($Tree){typeof(data)}}(data)
+        $Tree(::Type{T}, data) where T = $Tree{canonicalnode($Tree){T}}(data)
+
+        function $Tree(datas...)
+            data = first(datas)
+            tree = $Tree(data)
+            insert!(tree, datas...)
+            tree
+        end
+
+        function $Tree(::Type{T}, datas...) where T 
+            data = first(datas)
+            tree = $Tree(T, data)
+            insert!(tree, datas...)
+            tree
+        end
+    end
+end
