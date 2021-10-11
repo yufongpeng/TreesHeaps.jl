@@ -3,5 +3,8 @@ coverage:
     project:
       default:
         target: 90%
+    patch:
+      default:
+        target: 90%
         
 comment: false
