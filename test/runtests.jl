@@ -10,12 +10,14 @@ test_showmime(x) = show(IOBuffer(), MIME{Symbol("text/plain")}(), x)
     @test RBN(1) == RBN(Int, 1.0)
     @test BST() == BST(Any)
     @test BST(0, 1) == insert!(BST(Int, 0.0), 1.0)
+    @test BST(0, 1) == BST(Int, 0.0, 1.0)
     @test AVL() == AVL(Any)
     @test AVL(0, 1) == insert!(AVL(Int, 0.0), 1.0)
     @test Splay() == Splay(Any)
     @test Splay(0, 1) == insert!(Splay(Int, 0.0), 1.0)
     @test RBT() == RBT(Any)
     @test RBT(0, 1) == insert!(RBT(Int, 0.0), 1.0)
+    @test RBT(0, 1) == RBT(Int, 0.0, 1.0)
 end
 
 @testset "Interface" begin
@@ -102,6 +104,9 @@ end
     insert!(s, 1.0, 0, 2)
     insert!(s, -1)
     insert!(s, 2.5)
+    search(s, 1)
+    search(s, 0.5)
+    search(s, 1.5)
     @test first(search(s, 0, true))
     @test !first(search(s, 3, true))
     @test s.root.data == 1.0
@@ -121,6 +126,7 @@ end
 
 @testset "BinarySearchTree with height" begin
     s = BST(1.0, height = true)
+    search(s, 1)
     insert!(s, 0, 2)
     insert!(s, -1)
     insert!(s, 2.5)
