@@ -1,5 +1,4 @@
 using Test, TreesHeaps
-import TreesHeaps: link!, cut!, getdir, opposite
 
 test_show(x) = show(IOBuffer(), x)
 test_showmime(x) = show(IOBuffer(), MIME{Symbol("text/plain")}(), x)
@@ -9,13 +8,13 @@ test_showmime(x) = show(IOBuffer(), MIME{Symbol("text/plain")}(), x)
     @test HBN(1) == HBN(Int, 1.0)
     @test RBN(1) == RBN(Int, 1.0)
     @test BST() == BST(Any)
-    @test BST(0, 1) == insert!(BST(Int, 0.0), 1.0)
+    @test BST(0) == BST(Int, 0.0)
     @test AVL() == AVL(Any)
-    @test AVL(0, 1) == insert!(AVL(Int, 0.0), 1.0)
+    @test AVL(0) == AVL(Int, 0.0)
     @test Splay() == Splay(Any)
-    @test Splay(0, 1) == insert!(Splay(Int, 0.0), 1.0)
+    @test Splay(0) == Splay(Int, 0.0)
     @test RBT() == RBT(Any)
-    @test RBT(0, 1) == insert!(RBT(Int, 0.0), 1.0)
+    @test RBT(0) == RBT(Int, 0.0)
 end
 
 @testset "Interface" begin
@@ -23,7 +22,7 @@ end
     insert!(s1, 0, 2)
     insert!(s1, -1, 3)
     nodes1 = [n for n in s1.root]
-    s2 = BST(Float64, 1.0, height = true)
+    s2 = BST(Float64, 1.0, true)
     insert!(s2, 0, 2)
     insert!(s2, -1, 3)
     nodes2 = [n for n in s2.root]
@@ -61,42 +60,9 @@ end
     plot_init()
 end
 
-@testset "Node operations" begin
-    @test opposite(:left) == :right
-    @test isnothing(opposite(nothing))
-    @test !isnull(SBN(1))
-    @test isnull(NullNode())
-    @test height(SBN(0)) == 0
-    @test height(HBN(0)) == 0
-    @test height(NullNode()) == -1
-    s = SBN(1)
-    link!(s, SBN(2), :left)
-    @test s.left.data == 2
-    cut!(s, s.left)
-    @test isnothing(s.left.data)
-    link!(s, NullNode(), :left)
-    @test isnothing(s.left.data)
-    s = SBN(2)
-    link!(NullNode(), s, :left)
-    @test isnothing(s.parent.data)
-    @test isnothing(cut!(NullNode(), s, :left))
-    @test isnothing(cut!(s, NullNode(), :left))
-    link!(NullNode(), s, nothing)
-    @test isnothing(s.parent.data)
-    @test isnothing(getdir(NullNode(), s))
-    @test isnothing(getdir(s, NullNode()))
-    @test isnothing(getdir(NullNode(), NullNode()))
-    @test isnothing(link!(NullNode(), NullNode(), :left))
-    @test isnothing(link!(NullNode(), NullNode(), nothing))
-end
-
 @testset "BinarySearchTree" begin
     s = BST(Float64)
-    search(s, 1)
-    search(s, 1, true)
-    delete!(s, 1)
     delete!(s, 1, 2)
-    search(s, 1.0)
     @test !first(search(s, 1.0, true))
     insert!(s, 1.0)
     insert!(s, 1.0, 0, 2)
@@ -120,7 +86,7 @@ end
 end
 
 @testset "BinarySearchTree with height" begin
-    s = BST(1.0, height = true)
+    s = BST(1.0, true)
     insert!(s, 0, 2)
     insert!(s, -1)
     insert!(s, 2.5)
@@ -161,7 +127,6 @@ end
     @test s.root.right.right.data == 5.5
     delete!(s, 5.5)
     @test s.root.right.right.data == 6.0
-    subs = 
     delete!(s, 0.5)
     @test s.root.left.data == -1.0
     delete!(s, -1)
@@ -173,8 +138,8 @@ end
     delete!(s, 4.5)
     @test s.root.data == 5
     insert!(s, -1)
-    delete!(s, -3, 3, 0, -2, -1)
-    @test size(s) == 4
+    delete!(s, -3, 3)
+    @test size(s) == 7
     @test length(s) == 2
     test_show(s)
     test_showmime(s)
@@ -183,7 +148,6 @@ end
 @testset "SplayTree" begin
     s = Splay(Float64)
     delete!(s, 1)
-    delete!(s, 1, 2)
     splay!(s, 1)
     insert!(s, 1, 2, 0, 3, -1)
     @test s.root.data == -1.0
@@ -212,7 +176,6 @@ end
 
 @testset "SplayTree with topdown operations" begin
     s = Splay(Float64)
-    topdowndelete!(s, 1)
     topdowndelete!(s, 1, 2)
     topdownsplay!(s, 1)
     topdowninsert!(s, 1, 2)
@@ -235,12 +198,9 @@ end
     topdowndelete!(s, 2, 0)
     @test s.root.data == -1
     @test s.root.right.data == 1.0
-    topdowninsert!(s, -2.5, -3, -2, -1.5)
-    topdownsplay!(s, -1)
-    topdownsplay!(s, 0.5)
-    @test size(s) == 10
+    @test size(s) == 6
     nodes = [n for n in s.root]
-    @test first(nodes) == s.root.left
+    @test first(nodes) == s.root.right
     test_show(s)
     test_showmime(s)
 end

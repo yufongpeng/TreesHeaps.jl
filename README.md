@@ -3,10 +3,10 @@
 |:-------:|:------:|
 | [![][ci-img]][ci-url]| [![][codecov-img]][codecov-url]|
 
-[ci-img]: https://github.com/yufongpeng/TreesHeaps.jl/workflows/CI/badge.svg
-[ci-url]: https://github.com/yufongpeng/TreesHeaps.jl/actions?query=workflow%3ACI
-[codecov-img]: https://codecov.io/gh/yufongpeng/TreesHeaps.jl/coveage.svg
-[codecov-url]: https://codecov.io/gh/yufongpeng/TreesHeaps.jl
+[ci-img]: https://github.com/Jejulia/TreesHeaps.jl/workflows/CI/badge.svg
+[ci-url]: https://github.com/Jejulia/TreesHeaps.jl/actions?query=workflow%3ACI
+[codecov-img]: https://codecov.io/gh/Jejulia/TreesHeaps.jl/coveage.svg
+[codecov-url]: https://codecov.io/gh/Jejulia/TreesHeaps.jl
 
 Implementation of various tree and heaps (to do) structures. Only binary search tree, AVL tree, splay tree are supported now. Available operations includes `search`, `insert!`, `topdowninsert!`, `delete!`, `topdowndelete!`, `splay!`, `topdownsplay!`, `findmin`, `findmax`. Outputs are formatted through `AbstractTrees.jl`. Other structures and plotting recipe are under developments!
 

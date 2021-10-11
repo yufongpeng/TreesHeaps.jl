@@ -9,17 +9,12 @@ Search if `data` in the tree
 `internal = true` for internal function use.
 """
 function search(tree::AbstractTree, data, internal::Bool = false)
-    if tree.size > 0
-        current = tree.root
-        treesearch(current, data, internal)
-    else
-        if internal
-            false, tree.root
-        else
-            @info "The tree is empty!"
-            tree.root
-        end
-    end
+    tree.size > 0 || (internal ? (return false, tree.root) : begin
+        @info "The tree is empty!"
+        return tree.root
+    end)
+    current = tree.root
+    return treesearch(current, data, internal)
 end
 
 # Specialized function for tree
@@ -27,40 +22,26 @@ function treesearch(node::AbstractBinaryNode, data, internal::Bool = false)
     while true
         if node.data == data
             # gotcha
-            if internal
-                return true, node
-            else
-                if isdefined(node, :height)
-                    @info("Find $data at height $(node.height)")
-                else
-                    @info("Find $data")
-                end
-                return node
+            internal ? (return true, node) : begin
+                isdefined(node, :height) ? @info("Find $data at height $(node.height)") : @info("Find $data"); return node
             end
         elseif node.data > data
-            if isnull(node.left)
-                if internal
-                    return false, node
-                else
-                    @info("Can't Find $data")
-                    return NullNode()
-                end
+            isnull(node.left) && begin
+                internal ? (return false, node) : @info("Can't Find $data"); return NullNode()
             end
             node = node.left
         else
-            if isnull(node.right)
-                if internal
-                    return false, node
-                else
-                    @info("Can't Find $data")
-                    return NullNode()
-                end
+            isnull(node.right) && begin
+                internal ? (return false, node) : @info("Can't Find $data"); return NullNode()
             end
             node = node.right
         end
     end
 end
 
+"""
+"""
+function heapsearch() end
 
 """
     splay!(tree::SplayTree, data)
@@ -68,21 +49,19 @@ end
 Bottom up splay for `data`, i.e. search and moving data node up.    
 """
 function splay!(tree::SplayTree, data)
-    if tree.size <= 0
+    tree.size > 0 || begin
         @info "The tree is empty!"
         return tree
     end
     ex, current = search(tree, data, true)
-    if ex
+    ex ? begin
         parent = current.parent
-        Splaytraverse!(tree, parent, current, getdir(parent, current))
-    else
-        tree
-    end
+        return Splaytraverse!(tree, parent, current, getdir(parent, current))
+    end : return tree
 end
 
 """
-    split!(tree::SplayTree, data)
+    split!(tree::SplayTree, data; topdown::Bool = false)
 
 Split at `data`. For internal use; join! should be applied subsequantly. 
 """
@@ -106,7 +85,7 @@ end
 
 function split!(tree::SplayTree, data, ex::Bool)
     if ex
-        NullNode(), NullNode()
+        return NullNode(), NullNode()
     else
         if data > tree.root.data
             leftnode = tree.root
@@ -117,7 +96,7 @@ function split!(tree::SplayTree, data, ex::Bool)
             rightnode = tree.root
             cut!(rightnode, leftnode, :left)
         end
-        leftnode, rightnode
+        return leftnode, rightnode
     end
 end
 
@@ -126,9 +105,9 @@ end
     
 Top-down splay, i.e. search and moving nodes up at the same time.
 """
-function topdownsplay!(tree::T, data) where {T <: SplayTree}
+function topdownsplay!(tree::T, data) where{T <: SplayTree}
     # deal with root
-    if tree.size <= 0
+    tree.size > 0 || begin
         @info "The tree is empty!"
         return tree
     end
@@ -137,7 +116,7 @@ function topdownsplay!(tree::T, data) where {T <: SplayTree}
     current = tree.root
     leftnode = lefttree.root
     rightnode = righttree.root
-    topdownsplay!(tree, lefttree, righttree, current, leftnode, rightnode, data)
+    return topdownsplay!(tree, lefttree, righttree, current, leftnode, rightnode, data)
 end
 
 function topdownsplay!(tree::SplayTree, 
@@ -149,16 +128,14 @@ function topdownsplay!(tree::SplayTree,
                     data)
     child = data > centernode.data ? centernode.right : centernode.left
     dir1 = getdir(centernode, child)
-    if isnull(child) || (centernode.data == data)
+    if (isnull(child) | (centernode.data == data)) ||(grandchild = data > child.data ? child.right : child.left; false)
         # join
         return join!(tree, lefttree, righttree, centernode, leftnode, rightnode)
-    end
-    grandchild = data > child.data ? child.right : child.left
-    if isnull(grandchild)
+    elseif isnull(grandchild)
         # 1 level operation and join
         centernode, sendleft, sendright = TopDownZig!(centernode, child, dir1)
         leftnode, rightnode = send!(lefttree, righttree, leftnode, rightnode, sendleft, sendright)
-        join!(tree, lefttree, righttree, centernode, leftnode, rightnode)
+        return join!(tree, lefttree, righttree, centernode, leftnode, rightnode)
     else
         # 2 level operation and recurse
         dir2 = getdir(child,grandchild)
@@ -169,7 +146,7 @@ function topdownsplay!(tree::SplayTree,
         end
         # New operations node
         leftnode, rightnode = send!(lefttree, righttree, leftnode, rightnode, sendleft, sendright)
-        topdownsplay!(tree, lefttree, righttree, centernode, leftnode, rightnode, data)
+        return topdownsplay!(tree, lefttree, righttree, centernode, leftnode, rightnode, data)
     end
 end
 
@@ -181,7 +158,7 @@ function send!(::SplayTree, ::SplayTree,
             sendright::NSBN)
     link!(leftnode, sendleft, :right)
     link!(rightnode, sendright, :left)
-    findmax(sendleft), findmin(sendright)
+    return findmax(sendleft), findmin(sendright)
 end
 
 function send!(lefttree::SplayTree, ::SplayTree, ::NullNode,
@@ -190,7 +167,7 @@ function send!(lefttree::SplayTree, ::SplayTree, ::NullNode,
             sendright::NSBN)
     lefttree.root = sendleft
     link!(rightnode, sendright, :left)
-    sendleft, findmin(sendright)
+    return sendleft, findmin(sendright)
 end
 
 
@@ -200,7 +177,7 @@ function send!(::SplayTree, righttree::SplayTree,
             sendright::NSBN)
     link!(leftnode, sendleft, :right)
     righttree.root = sendright
-    findmax(sendleft), sendright
+    return findmax(sendleft), sendright
 end
 
 function send!(lefttree::SplayTree, 
@@ -210,7 +187,7 @@ function send!(lefttree::SplayTree,
             sendright::NSBN)
     lefttree.root = sendleft
     righttree.root = sendright
-    sendleft, sendright
+    return sendleft, sendright
 end
 
 """
@@ -258,7 +235,7 @@ end
 Insert `data` or multiple `datas`
 """
 function insert!(tree::AbstractTree{N}, data) where {N <: HBN}
-    if tree.size == 0
+    tree.size == 0 && begin
         tree.size += 1
         tree.root = N(data)
         return traverse!(tree, tree.root.parent, tree.root)
@@ -282,7 +259,7 @@ function insert!(tree::AbstractTree{N}, data) where {N <: HBN}
 end
 
 function insert!(tree::AbstractTree{N}, data) where {N <: SBN}
-    if tree.size == 0
+    tree.size == 0 && begin
         tree.size += 1
         tree.root = N(data)
         return tree
@@ -290,7 +267,6 @@ function insert!(tree::AbstractTree{N}, data) where {N <: SBN}
     ex, current = search(tree, data, true)
     if ex
         @info "The data $data is already in this tree!"
-    # using link!
     elseif current.data > data
         child = N(data)
         current.left = child
@@ -316,7 +292,10 @@ function insert!(tree::SplayTree{N}, data) where {N <: SBN}
     end
 end
 
-function insert!(tree::RedBlackTree, data)
+function insert!(tree::SplayTree, datas...)
+    @inbounds for data in datas
+        insert!(tree, data)
+    end
     tree
 end
 
@@ -326,21 +305,6 @@ function insert!(tree::AbstractTree, datas...)
     end
     tree
 end
-
-function insert!(tree::SplayTree, datas...)
-    @inbounds for data in datas
-        insert!(tree, data)
-    end
-    tree
-end
-
-function insert!(tree::RedBlackTree, datas...)
-    @inbounds for data in datas
-        insert!(tree, data)
-    end
-    tree
-end
-
 
 """
     topdowninsert!(tree::SplayTree, data)
@@ -375,7 +339,7 @@ end
 Delete `data` or multiple `datas`.
 """
 function delete!(tree::AbstractTree, data)
-    if tree.size <= 0
+    tree.size > 0 || begin
         @info "The tree is empty!"
         return tree
     end
@@ -384,10 +348,10 @@ function delete!(tree::AbstractTree, data)
         tree.size -= 1
         # specialized for root
         if tree.root == current
-            delete_root!(tree, current)
+            return delete_root!(tree, current)
         else
             node = treedelete!(current)
-            traverse!(tree, node)
+            return traverse!(tree, node)
         end
     else
         @info "The data $data is not in this tree!"
@@ -434,7 +398,7 @@ function delete_root!(tree::AbstractTree, current::HBN)
 end
      
 function delete!(tree::AbstractTree, datas...)
-    if tree.size <= 0
+    tree.size > 0 || begin
         @info "The tree is empty!"
         return tree
     end
@@ -445,7 +409,7 @@ function delete!(tree::AbstractTree, datas...)
 end
 
 function delete!(tree::SplayTree, data)
-    if tree.size <= 0
+    tree.size > 0 || begin
         @info "The tree is empty!"
         return tree
     end
@@ -475,7 +439,7 @@ function delete!(tree::SplayTree)
 end
 
 function delete!(tree::SplayTree, datas...)
-    if tree.size <= 0
+    tree.size > 0 || begin
         @info "The tree is empty!"
         return tree
     end
@@ -492,7 +456,7 @@ end
 Top-down delete `data` or multiple `datas`.
 """
 function topdowndelete!(tree::SplayTree, data)
-    if tree.size <= 0
+    tree.size > 0 || begin
         @info "The tree is empty!"
         return tree
     end
@@ -506,7 +470,7 @@ function topdowndelete!(tree::SplayTree, data)
 end
 
 function topdowndelete!(tree::SplayTree, datas...)
-    if tree.size <= 0
+    tree.size > 0 || begin
         @info "The tree is empty!"
         return tree
     end
@@ -528,7 +492,7 @@ function findmin(node::AbstractNode)
     while !isnull(node.left)
         node = node.left
     end
-    node
+    return node
 end
 
 findmin(node::NullNode) = node
@@ -545,7 +509,7 @@ function findmax(node::AbstractNode)
     while !isnull(node.right)
         node = node.right
     end
-    node
+    return node
 end
 
 findmax(node::NullNode) = node
@@ -555,14 +519,26 @@ findmax(node::NullNode) = node
 
 Find minimum value for right descendants of a node.
 """
-findrightmin(node::AbstractNode) = findmin(node.right)
+function findrightmin(node::AbstractNode)
+    node = node.right
+    while !isnull(node.left)
+        node = node.left
+    end
+    return node
+end
 
 """
     findleftmax(node::AbstractNode)
 
 Find maximum value for left descendants of a node.
 """
-findleftmax(node::AbstractNode) = findmax(node.left)
+function findleftmax(node::AbstractNode)
+    node = node.left
+    while !isnull(node.right)
+        node = node.right
+    end
+    return node
+end
 
 """
     findchild(grandparent::AbstractNode, dir::Symbol)
@@ -573,5 +549,5 @@ function findchild(grandparent::AbstractNode, dir::Symbol)
     parent = getproperty(grandparent, dir)
     child1 = getproperty(parent, dir)
     child2 = getproperty(parent, opposite(dir))
-    parent, child1, child2
+    return parent, child1, child2
 end

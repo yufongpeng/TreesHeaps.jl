@@ -1,6 +1,6 @@
-#using Reexport, RecipesBase
+using Reexport, RecipesBase
 
-#@reexport using Plots
+@reexport using Plots
 
 
 
