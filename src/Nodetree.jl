@@ -112,10 +112,10 @@ Binary search tree. Nodes can be `SimpleBinaryNode` or `HeightBinaryNode`.
 
 # Constructors
     const BST = BinarySearchTree
-    BST(height::Bool = false)
-    BST(data, height::Bool = false)
-    BST(::Type{T}, height::Bool = false)
-    BST(::Type{T}, data, height::Bool = false)
+    BST(; height::Bool = false)
+    BST(datas...; height::Bool = false)
+    BST(::Type{T}; height::Bool = false)
+    BST(::Type{T}, datas...; height::Bool = false)
 
 # Fields
 * `root`: the root node.
@@ -134,22 +134,27 @@ mutable struct BinarySearchTree{N <: AbstractBinaryNode} <: AbstractTree{N}
 end
 
 const BST = BinarySearchTree
-BST(;height::Bool = false) = BST(Any; height)
-BST(::Type{T}; height::Bool = false) where T = height ? BST{HBN{T}}() : BST{SBN{T}}()
-BST(data; height::Bool = false) = BST(typeof(data), data; height)
-BST(::Type{T}, data; height::Bool = false) where T = height ? BST{HBN{T}}(data) : BST{SBN{T}}(data)
 
-function BST(datas...; height::Bool = false)
+
+#BST(data; height::Bool = false) = BST(typeof(data), data; height)
+
+BST(datas...; height::Bool = false) = BST(promote(datas...)...; height)
+BST(; height::Bool = false) = BST(Any; height)
+
+function BST(datas::Vararg{T}; height::Bool = false) where T
     data = first(datas)
-    tree = BST(data; height)
-    insert!(tree, datas...)
+    tree = BST(T, data; height)
+    insert!(tree, datas[2:end]...)
     tree
 end
+
+BST(::Type{T}; height::Bool = false) where T = height ? BST{HBN{T}}() : BST{SBN{T}}()
+BST(::Type{T}, data; height::Bool = false) where T = height ? BST{HBN{T}}(data) : BST{SBN{T}}(data)
 
 function BST(::Type{T}, datas...; height::Bool = false) where T
     data = first(datas)
     tree = BST(T, data; height)
-    insert!(tree, datas...)
+    insert!(tree, datas[2:end]...)
     tree
 end
 
@@ -159,10 +164,11 @@ end
 AVL tree. Nodes must be `HeightBinaryNode` to be able to do rotations.
 
 # Constructors
-    AVLTree{T}()
-    AVLTree{T}(data)
+    const AVL = AVLTree
     AVL()
-    AVL(data)
+    AVL(datas...)
+    AVL(::Type{T})
+    AVL(::Type{T}), datas...)
 
 # Fields    
 * `root`: the root node.
@@ -190,9 +196,9 @@ Splay tree. Nodes should be `SimpleBinaryNode`, though `HeightBinaryNode` is ok 
 # Constructors
     const Splay = SplayTree
     Splay()
+    Splay(datas...)
     Splay(::Type{T})
-    Splay(data)
-    Splay(::Type{T}, data)
+    Splay(::Type{T}, datas...)
 
 # Fields
 * `root`: the root node.
@@ -218,9 +224,9 @@ Red black tree. Nodes should be `RedBlackBinaryNode`.
 # Constructors
     const RBT = RedBlackTree
     RBT()
+    RBT(datas...)
     RBT(::Type{T})
-    RBT(data)
-    RBT(::Type{T}, data)
+    RBT(::Type{T}, datas...)
 
 # Fields
 * `root`: the root node.
@@ -246,22 +252,25 @@ canonicalnode(::Type{<: RBT}) = RBN
 
 for Tree in [:AVL, :Splay, :RBT]
     @eval begin
+        #$Tree(data) = $Tree{canonicalnode($Tree){typeof(data)}}(data)
+        
+        $Tree(datas...) = $Tree(promote(datas...)...)
         $Tree() = $Tree{canonicalnode($Tree){Any}}()
-        $Tree(::Type{T}) where T = $Tree{canonicalnode($Tree){T}}()
-        $Tree(data) = $Tree{canonicalnode($Tree){typeof(data)}}(data)
-        $Tree(::Type{T}, data) where T = $Tree{canonicalnode($Tree){T}}(data)
 
-        function $Tree(datas...)
+        function $Tree(datas::Vararg{T}) where T
             data = first(datas)
-            tree = $Tree(data)
-            insert!(tree, datas...)
+            tree = $Tree(T, data)
+            insert!(tree, datas[2:end]...)
             tree
         end
 
+        $Tree(::Type{T}) where T = $Tree{canonicalnode($Tree){T}}()
+        $Tree(::Type{T}, data) where T = $Tree{canonicalnode($Tree){T}}(data)
+    
         function $Tree(::Type{T}, datas...) where T 
             data = first(datas)
             tree = $Tree(T, data)
-            insert!(tree, datas...)
+            insert!(tree, datas[2:end]...)
             tree
         end
     end
